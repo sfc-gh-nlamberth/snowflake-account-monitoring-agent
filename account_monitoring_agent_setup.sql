@@ -172,7 +172,7 @@ GRANT APPLYBUDGET ON WAREHOUSE ACCOUNT_MONITORING_AGENT_WH
 
 CREATE RESOURCE MONITOR IF NOT EXISTS ACCOUNT_MONITORING_AGENT_RM
   WITH
-    CREDIT_QUOTA    = 6
+    CREDIT_QUOTA    = 16
     FREQUENCY       = DAILY
     START_TIMESTAMP = IMMEDIATELY
     -- NOTIFY_USERS = ('<your_snowflake_username>')   -- uncomment and fill in
@@ -651,9 +651,8 @@ CREATE OR REPLACE AGENT ACCOUNT_MONITORING_AGENT
 -- projected spend is expected to exceed the monthly spending limit.
 --
 -- The spending limit here (166 credits) is sized for a $500/month cap at $3/credit
--- (166 × $3 = $498). It is set to ~30x the daily resource monitor limit
--- (6 credits/day × 30 days), giving the budget a full-month view
--- while the resource monitor enforces the per-day hard cap.
+-- (166 × $3 = $498). The daily resource monitor (16 credits/day = $48/day) enforces
+-- the separate $50/day hard cap independently.
 --
 -- To enable email notifications, create a notification integration and register
 -- it with the budget after creation (see the commented block below).
