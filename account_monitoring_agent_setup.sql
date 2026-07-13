@@ -172,7 +172,7 @@ GRANT APPLYBUDGET ON WAREHOUSE ACCOUNT_MONITORING_AGENT_WH
 
 CREATE RESOURCE MONITOR IF NOT EXISTS ACCOUNT_MONITORING_AGENT_RM
   WITH
-    CREDIT_QUOTA    = 17
+    CREDIT_QUOTA    = 6
     FREQUENCY       = DAILY
     START_TIMESTAMP = IMMEDIATELY
     -- NOTIFY_USERS = ('<your_snowflake_username>')   -- uncomment and fill in
@@ -650,8 +650,9 @@ CREATE OR REPLACE AGENT ACCOUNT_MONITORING_AGENT
 -- credit consumption for a set of linked objects and send email alerts when
 -- projected spend is expected to exceed the monthly spending limit.
 --
--- The spending limit here (510 credits) is set to ~30x the daily resource
--- monitor limit (17 credits/day × 30 days), giving the budget a full-month view
+-- The spending limit here (166 credits) is sized for a $500/month cap at $3/credit
+-- (166 × $3 = $498). It is set to ~30x the daily resource monitor limit
+-- (6 credits/day × 30 days), giving the budget a full-month view
 -- while the resource monitor enforces the per-day hard cap.
 --
 -- To enable email notifications, create a notification integration and register
@@ -661,7 +662,7 @@ CREATE SNOWFLAKE.CORE.BUDGET IF NOT EXISTS ACCOUNT_MONITORING_AGENT_BUDGET ()
   COMMENT = 'Monthly credit budget for the Account Monitoring Agent dedicated warehouse';
 
 -- Set the monthly spending limit (in credits).
-CALL ACCOUNT_MONITORING_AGENT_BUDGET!SET_SPENDING_LIMIT(510);
+CALL ACCOUNT_MONITORING_AGENT_BUDGET!SET_SPENDING_LIMIT(166);
 
 -- Attach the dedicated warehouse so the budget tracks its compute spend.
 -- SYSTEM$REFERENCE creates a scoped reference to the warehouse object.
