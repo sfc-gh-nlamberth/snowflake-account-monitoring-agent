@@ -102,10 +102,10 @@ GRANT OWNERSHIP ON SCHEMA ACCOUNT_MONITORING_AGENT_DEMO.PUBLIC
 -- These grants must come from ACCOUNTADMIN because they involve system-level
 -- database roles and cross-database access.
 
--- USAGE_VIEWER is the least-privilege Snowflake database role that
--- grants SELECT on SNOWFLAKE.ACCOUNT_USAGE views, including QUERY_HISTORY.
+-- GOVERNANCE_VIEWER is the Snowflake database role that grants SELECT on
+-- SNOWFLAKE.ACCOUNT_USAGE views including QUERY_HISTORY.
 -- This is what powers the agent's query_history tool.
-GRANT DATABASE ROLE SNOWFLAKE.USAGE_VIEWER
+GRANT DATABASE ROLE SNOWFLAKE.GOVERNANCE_VIEWER
   TO ROLE ACCOUNT_MONITORING_AGENT_ROLE;
 
 -- BUDGET_CREATOR is a Snowflake database role that allows creating budget
