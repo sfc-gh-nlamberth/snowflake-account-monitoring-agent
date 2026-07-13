@@ -472,13 +472,13 @@ CREATE OR REPLACE SEMANTIC VIEW QUERY_HISTORY_MONITORING
                   ROUND(EXECUTION_TIME / 1000.0, 2)      AS execution_seconds,
                   ROUND(QUEUED_OVERLOAD_TIME / 1000.0, 2) AS queue_seconds,
                   ROUND(COMPILATION_TIME / 1000.0, 2)    AS compile_seconds,
-                  ROUND(EXECUTION_EFFICIENCY_RATIO, 3)   AS execution_efficiency_ratio,
+                  ROUND(EXECUTION_TIME / NULLIF(TOTAL_ELAPSED_TIME, 0), 3) AS execution_efficiency_ratio,
                   QUERY_TEXT
              FROM query_history
             WHERE START_TIME >= DATEADD(DAY, -7, CURRENT_TIMESTAMP())
               AND EXECUTION_STATUS = ''success''
               AND TOTAL_ELAPSED_TIME >= 5000
-              AND EXECUTION_EFFICIENCY_RATIO < 0.5
+              AND EXECUTION_TIME / NULLIF(TOTAL_ELAPSED_TIME, 0) < 0.5
             ORDER BY TOTAL_ELAPSED_TIME DESC
             LIMIT 25'
     ),
@@ -502,19 +502,19 @@ CREATE OR REPLACE SEMANTIC VIEW QUERY_HISTORY_MONITORING
     TOP_OPTIMIZATION_CANDIDATES_LAST_7_DAYS AS (
       QUESTION 'Which queries combine poor partition pruning with significant spill and are the top candidates for optimization?'
       SQL 'SELECT QUERY_ID, USER_NAME, WAREHOUSE_NAME,
-                  ROUND(PARTITION_SCAN_RATIO, 3)               AS partition_scan_ratio,
+                  ROUND(PARTITIONS_SCANNED / NULLIF(PARTITIONS_TOTAL, 0), 3)                                AS partition_scan_ratio,
                   PARTITIONS_SCANNED, PARTITIONS_TOTAL,
-                  ROUND(TOTAL_SPILL_BYTES / 1073741824.0, 2)  AS total_spill_gb,
-                  ROUND(BYTES_SCANNED / 1073741824.0, 2)       AS bytes_scanned_gb,
-                  ROUND(TOTAL_ELAPSED_TIME_SECONDS, 2)         AS elapsed_seconds,
+                  ROUND((BYTES_SPILLED_TO_LOCAL_STORAGE + BYTES_SPILLED_TO_REMOTE_STORAGE) / 1073741824.0, 2) AS total_spill_gb,
+                  ROUND(BYTES_SCANNED / 1073741824.0, 2)                                                    AS bytes_scanned_gb,
+                  ROUND(TOTAL_ELAPSED_TIME / 1000.0, 2)                                                     AS elapsed_seconds,
                   QUERY_TEXT
              FROM query_history
             WHERE START_TIME >= DATEADD(DAY, -7, CURRENT_TIMESTAMP())
               AND EXECUTION_STATUS = ''success''
               AND PARTITIONS_TOTAL > 0
-              AND TOTAL_SPILL_BYTES > 0
-              AND PARTITION_SCAN_RATIO > 0.5
-            ORDER BY TOTAL_SPILL_BYTES DESC
+              AND (BYTES_SPILLED_TO_LOCAL_STORAGE + BYTES_SPILLED_TO_REMOTE_STORAGE) > 0
+              AND PARTITIONS_SCANNED / NULLIF(PARTITIONS_TOTAL, 0) > 0.5
+            ORDER BY (BYTES_SPILLED_TO_LOCAL_STORAGE + BYTES_SPILLED_TO_REMOTE_STORAGE) DESC
             LIMIT 25'
     )
   );
